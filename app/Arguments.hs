@@ -1,4 +1,4 @@
-module Arguments (ArgStructure(..), Result, fromArgs) where
+module Arguments (ArgStructure(..), Result, ValuedOption, PlainOption, PositionalOptions, fromArgs) where
 
 import Data.Function
 import Data.Functor
@@ -99,7 +99,10 @@ parseOpts ctx ParseState { base=base, remaining=(arg:args) } =
 parse :: ArgStructure a -> a -> [String] -> Result a
 parse ctx base args = do
   (optState, positionalArgs) <- parseOpts ctx ParseState { base=base, remaining=args }
-  applyPositional <- fromMaybe (Left "Unexpected positional argument") (Right <$> positional ctx)
+  applyPositional <- case positionalArgs of {
+    [] -> Right $ (const . Right);
+    _ -> fromMaybe (Left "Unexpected positional argument") (Right <$> positional ctx)
+  }
   applyPositional optState positionalArgs
 
 bailOnError :: Result a -> IO a
